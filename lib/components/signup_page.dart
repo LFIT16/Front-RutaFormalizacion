@@ -9,6 +9,7 @@ import 'package:login_signup/components/login_page.dart';
 
 import 'package:login_signup/components/common/custom_form_button.dart';
 import 'package:login_signup/components/common/custom_input_field.dart';
+import 'package:login_signup/services/security_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -22,6 +23,11 @@ class _SignupPageState extends State<SignupPage> {
   File? _profileImage;
 
   final _signupFormKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool isLoading = false;
 
   Future _pickProfileImage() async {
     try {
@@ -89,6 +95,7 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 16,),
                       CustomInputField(
+                          controller: nameController,
                           labelText: 'Name',
                           hintText: 'Your name',
                           isDense: true,
@@ -101,6 +108,7 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 16,),
                       CustomInputField(
+                          controller: emailController,
                           labelText: 'Email',
                           hintText: 'Your email id',
                           isDense: true,
@@ -114,20 +122,21 @@ class _SignupPageState extends State<SignupPage> {
                             return null;
                           }
                       ),
+                    //  const SizedBox(height: 16,),
+                    //  CustomInputField(
+                    //      labelText: 'Contact no.',
+                    //      hintText: 'Your contact number',
+                    //      isDense: true,
+                    //      validator: (textValue) {
+                    //         if(textValue == null || textValue.isEmpty) {
+                    //          return 'Contact number is required!';
+                    //        }
+                    //        return null;
+                  //       }
+                      //  ),
                       const SizedBox(height: 16,),
                       CustomInputField(
-                          labelText: 'Contact no.',
-                          hintText: 'Your contact number',
-                          isDense: true,
-                          validator: (textValue) {
-                            if(textValue == null || textValue.isEmpty) {
-                              return 'Contact number is required!';
-                            }
-                            return null;
-                          }
-                      ),
-                      const SizedBox(height: 16,),
-                      CustomInputField(
+                        controller: passwordController,
                         labelText: 'Password',
                         hintText: 'Your password',
                         isDense: true,
@@ -170,12 +179,39 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  void _handleSignupUser() {
-    // signup user
-    if (_signupFormKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Submitting data..')),
+  Future<void> _handleSignupUser() async {
+    if (!_signupFormKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await SecurityService.register(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuario registrado correctamente')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 }

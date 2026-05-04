@@ -5,11 +5,17 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-    return SizedBox(
+    return Container(
+      height: 210,
       width: double.infinity,
-      height: size.height * 0.3,
-      child: Image.asset('assets/images/friendship.png'),
+      color: Colors.white,
+      child: Center(
+        child: Image.asset(
+          'assets/images/logo.png',
+          width: MediaQuery.of(context).size.width * 1.25,
+          fit: BoxFit.contain,
+        ),
+      ),
     );
   }
 }
