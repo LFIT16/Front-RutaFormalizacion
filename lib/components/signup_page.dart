@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:login_signup/components/common/page_header.dart';
 import 'package:login_signup/components/common/page_heading.dart';
 import 'package:login_signup/components/login_page.dart';
+import 'package:login_signup/components/verify_code_page.dart';
+import 'package:login_signup/services/auth_service.dart';
 
 import 'package:login_signup/components/common/custom_form_button.dart';
 import 'package:login_signup/components/common/custom_input_field.dart';
-import 'package:login_signup/services/security_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -23,11 +24,17 @@ class _SignupPageState extends State<SignupPage> {
   File? _profileImage;
 
   final _signupFormKey = GlobalKey<FormState>();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  
+  // Controllers para obtener los valores
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  bool isLoading = false;
+  bool _isLoading = false;
 
   Future _pickProfileImage() async {
     try {
@@ -39,6 +46,56 @@ class _SignupPageState extends State<SignupPage> {
     } on PlatformException catch (e) {
       debugPrint('Failed to pick image error: $e');
     }
+  }
+
+  // Validador de contraseña
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'La contraseña es obligatoria';
+    }
+    if (value.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres';
+    }
+    // Verificar mayúscula
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'La contraseña debe tener al menos una mayúscula';
+    }
+    // Verificar minúscula
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return 'La contraseña debe tener al menos una minúscula';
+    }
+    // Verificar número
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'La contraseña debe tener al menos un número';
+    }
+    // Verificar carácter especial
+    if (!value.contains(RegExp(r'[@$!%*?&]'))) {
+      return 'La contraseña debe tener al menos un carácter especial (@, \$, !, %, *, ?, &)';
+    }
+    return null;
+  }
+
+  // Validador de teléfono
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'El teléfono es obligatorio';
+    }
+    if (!RegExp(r'^[+]?[0-9]{7,15}$').hasMatch(value)) {
+      return 'El teléfono debe tener entre 7 y 15 dígitos';
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -59,7 +116,7 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                   child: Column(
                     children: [
-                      const PageHeading(title: 'Sign-up',),
+                      const PageHeading(title: 'Registrarse',),
                       SizedBox(
                         width: 130,
                         height: 130,
@@ -95,74 +152,120 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       const SizedBox(height: 16,),
                       CustomInputField(
-                          controller: nameController,
-                          labelText: 'Name',
-                          hintText: 'Your name',
+                          controller: _nameController,
+                          labelText: 'Nombre',
+                          hintText: 'Tu nombre',
                           isDense: true,
                           validator: (textValue) {
                             if(textValue == null || textValue.isEmpty) {
-                              return 'Name field is required!';
+                              return 'El nombre es obligatorio';
+                            }
+                            if(textValue.length < 2) {
+                              return 'El nombre debe tener al menos 2 caracteres';
                             }
                             return null;
                           }
                       ),
                       const SizedBox(height: 16,),
                       CustomInputField(
-                          controller: emailController,
-                          labelText: 'Email',
-                          hintText: 'Your email id',
+                          controller: _lastNameController,
+                          labelText: 'Apellido',
+                          hintText: 'Tu apellido',
                           isDense: true,
                           validator: (textValue) {
                             if(textValue == null || textValue.isEmpty) {
-                              return 'Email is required!';
+                              return 'El apellido es obligatorio';
+                            }
+                            if(textValue.length < 2) {
+                              return 'El apellido debe tener al menos 2 caracteres';
+                            }
+                            return null;
+                          }
+                      ),
+                      const SizedBox(height: 16,),
+                      CustomInputField(
+                          controller: _emailController,
+                          labelText: 'Email',
+                          hintText: 'Tu correo electrónico',
+                          isDense: true,
+                          validator: (textValue) {
+                            if(textValue == null || textValue.isEmpty) {
+                              return 'El email es obligatorio';
                             }
                             if(!EmailValidator.validate(textValue)) {
-                              return 'Please enter a valid email';
+                              return 'Por favor ingresa un email válido';
                             }
                             return null;
                           }
                       ),
-                    //  const SizedBox(height: 16,),
-                    //  CustomInputField(
-                    //      labelText: 'Contact no.',
-                    //      hintText: 'Your contact number',
-                    //      isDense: true,
-                    //      validator: (textValue) {
-                    //         if(textValue == null || textValue.isEmpty) {
-                    //          return 'Contact number is required!';
-                    //        }
-                    //        return null;
-                  //       }
-                      //  ),
                       const SizedBox(height: 16,),
                       CustomInputField(
-                        controller: passwordController,
-                        labelText: 'Password',
-                        hintText: 'Your password',
+                          controller: _phoneController,
+                          labelText: 'Teléfono',
+                          hintText: 'Tu número de teléfono',
+                          isDense: true,
+                          validator: _validatePhone,
+                      ),
+                      const SizedBox(height: 16,),
+                      CustomInputField(
+                          controller: _addressController,
+                          labelText: 'Dirección (Opcional)',
+                          hintText: 'Tu dirección',
+                          isDense: true,
+                          validator: (textValue) {
+                            if(textValue != null && textValue.length > 200) {
+                              return 'La dirección no puede superar 200 caracteres';
+                            }
+                            return null;
+                          }
+                      ),
+                      const SizedBox(height: 16,),
+                      CustomInputField(
+                        controller: _passwordController,
+                        labelText: 'Contraseña',
+                        hintText: 'Tu contraseña',
+                        isDense: true,
+                        obscureText: true,
+                        validator: _validatePassword,
+                        suffixIcon: true,
+                      ),
+                      const SizedBox(height: 16,),
+                      CustomInputField(
+                        controller: _confirmPasswordController,
+                        labelText: 'Confirmar Contraseña',
+                        hintText: 'Confirma tu contraseña',
                         isDense: true,
                         obscureText: true,
                         validator: (textValue) {
                           if(textValue == null || textValue.isEmpty) {
-                            return 'Password is required!';
+                            return 'Debes confirmar tu contraseña';
+                          }
+                          if(textValue != _passwordController.text) {
+                            return 'Las contraseñas no coinciden';
                           }
                           return null;
                         },
                         suffixIcon: true,
                       ),
                       const SizedBox(height: 22,),
-                      CustomFormButton(innerText: 'Signup', onPressed: _handleSignupUser,),
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : CustomFormButton(
+                              innerText: 'Registrarse',
+                              onPressed: _handleSignupUser,
+                            ),
                       const SizedBox(height: 18,),
                       SizedBox(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text('Already have an account ? ', style: TextStyle(fontSize: 13, color: Color(0xff939393), fontWeight: FontWeight.bold),),
+                            const Text('¿Ya tienes cuenta? ', style: TextStyle(fontSize: 13, color: Color(0xff939393), fontWeight: FontWeight.bold),),
                             GestureDetector(
                               onTap: () => {
                                 Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()))
                               },
-                              child: const Text('Log-in', style: TextStyle(fontSize: 15, color: Color(0xff748288), fontWeight: FontWeight.bold),),
+                              child: const Text('Inicia sesión', style: TextStyle(fontSize: 15, color: Color(0xff748288), fontWeight: FontWeight.bold),),
                             ),
                           ],
                         ),
@@ -179,39 +282,62 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  Future<void> _handleSignupUser() async {
+  void _handleSignupUser() async {
+    // Validate form
     if (!_signupFormKey.currentState!.validate()) {
       return;
     }
 
     setState(() {
-      isLoading = true;
+      _isLoading = true;
     });
 
-    try {
-      await SecurityService.register(
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+    // Call registration service
+    final result = await AuthService.registerUser(
+      name: _nameController.text,
+      lastName: _lastNameController.text,
+      email: _emailController.text,
+      phone: _phoneController.text,
+      password: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
+      address: _addressController.text,
+    );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Usuario registrado correctamente')),
-      );
+    setState(() {
+      _isLoading = false;
+    });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+    if (mounted) {
+      if (result['success']) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Usuario registrado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Navigate to verification code page
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VerifyCodePage(
+                email: _emailController.text,
+                purpose: 'REGISTRO',
+              ),
+            ),
+          );
+        }
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? 'Error en el registro'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
