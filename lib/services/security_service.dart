@@ -9,7 +9,7 @@ class SecurityService {
   static String get baseUrl => dotenv.env['API_URL']!;
 
   static Future<String> login(String email, String password) async {
-    final url = Uri.parse('$baseUrl/public/security/login');
+    final url = Uri.parse('$baseUrl/auth/login');
 
     final response = await http.post(
       url,
