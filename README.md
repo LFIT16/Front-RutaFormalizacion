@@ -29,11 +29,13 @@ To Run:
 ```
 C:\path\to\project> flutter pub get
 
+keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+
 ```
 then run:
 
 ```
-C:\path\to\project> flutter run -d edge --web-port 8080
+C:\path\to\project> flutter run -d edge --web-port 8383
 
 ```
 
