@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 import 'package:login_signup/components/home_page.dart';
 import 'package:login_signup/components/login_page.dart';
+import 'package:login_signup/components/noticias/news_screen.dart';
 import 'package:login_signup/services/token_service.dart';
 
 void main() {
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
             routes: {
               '/login': (context) => const LoginPage(),
               '/home': (context) => const HomePage(),
+              '/news': (context) => NewsScreen(),
             },
           );
         } else {

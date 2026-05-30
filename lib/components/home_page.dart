@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:login_signup/services/token_service.dart';
-import 'package:login_signup/components/login_page.dart';
+import 'package:login_signup/components/noticias/news_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -55,11 +55,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
         elevation: 0,
-        backgroundColor: Colors.blue.shade400,
+        backgroundColor: scheme.primary,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -77,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade400,
+                      color: scheme.primary,
                       borderRadius: BorderRadius.circular(50),
                     ),
                     child: const Icon(
@@ -100,8 +102,8 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(10),
+                      color: scheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: const Text(
                       '✓ Has iniciado sesión exitosamente',
@@ -113,6 +115,74 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const SizedBox(height: 30),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        side: BorderSide(color: scheme.outlineVariant),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: scheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Icon(Icons.campaign_rounded, color: scheme.primary),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Noticias LUAI',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Formalización, emprendimiento, mipymes y cámara de comercio.',
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: scheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => NewsScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.auto_awesome_rounded),
+                                label: const Text('Abrir noticias'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
                   ElevatedButton(
                     onPressed: _handleLogout,
                     style: ElevatedButton.styleFrom(
