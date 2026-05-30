@@ -1,9 +1,17 @@
-import 'package:http/http.dart' as http;
+import 'dart:async';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:google_sign_in/google_sign_in.dart';
+//port 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  // Backend API base URL - Actualiza según tu configuración
-  static const String baseUrl = 'http://localhost:8383/auth';
+  // Backend API base URL 
+  static late final String baseUrl;
+
+  static void init() {
+  final apiUrl = 'http://localhost:8383';
+  baseUrl = '$apiUrl/auth';
+}
 
   // Registrar usuario
   static Future<Map<String, dynamic>> registerUser({
@@ -18,9 +26,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/register'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
           'lastName': lastName,
@@ -80,9 +86,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
           'password': password,
@@ -138,9 +142,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/2fa/verify'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
           'codigo': codigo,
@@ -202,9 +204,7 @@ class AuthService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/2fa/send'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
           'proposito': purpose,
@@ -244,12 +244,60 @@ class AuthService {
       };
     }
   }
+
+  // Login con Google (dentro de la clase AuthService)
+  static Future<Map<String, dynamic>> loginWithGoogle() async {
+  try {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      scopes: ['email', 'profile', 'openid'],
+      clientId: '408294359663-pihvunt5ou1h5nkul77du76vvlsq66d1.apps.googleusercontent.com',
+    );
+
+    await googleSignIn.signOut();
+
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      return {'success': false, 'error': 'Login cancelado por el usuario'};
+    }
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+    // En web se usa el accessToken, no el idToken
+    final String? accessToken = googleAuth.accessToken;
+
+    if (accessToken == null) {
+      return {'success': false, 'error': 'No se pudo obtener el token de Google'};
+    }
+
+    // Enviar el accessToken al backend
+    final response = await http.post(
+      Uri.parse('$baseUrl/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'accessToken': accessToken}),
+    ).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
+    );
+
+    final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'token': responseData['token'],
+        'email': responseData['email'] ?? googleUser.email,
+        'name': responseData['name'] ?? googleUser.displayName ?? '',
+      };
+    } else {
+      return {
+        'success': false,
+        'error': responseData['error'] ?? 'Error al autenticar con Google',
+      };
+    }
+  } on TimeoutException {
+    return {'success': false, 'error': 'El servidor tardó demasiado en responder'};
+  } catch (e) {
+    return {'success': false, 'error': 'Error: ${e.toString()}'};
+  }
 }
-
-class TimeoutException implements Exception {
-  final String message;
-  TimeoutException(this.message);
-
-  @override
-  String toString() => message;
 }

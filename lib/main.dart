@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
 import 'package:login_signup/components/home_page.dart';
 import 'package:login_signup/components/login_page.dart';
+import 'package:login_signup/services/auth_service.dart';
 import 'package:login_signup/services/token_service.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
-  runApp(const MyApp());
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+void main() async {
+  await dotenv.load();
+  AuthService.init();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {

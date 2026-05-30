@@ -33,7 +33,7 @@ C:\path\to\project> flutter pub get
 then run:
 
 ```
-C:\path\to\project> flutter run
+C:\path\to\project> flutter run -d edge --web-port 8080
 
 ```
 
