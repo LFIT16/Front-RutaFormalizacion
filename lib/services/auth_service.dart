@@ -247,64 +247,64 @@ class AuthService {
   }
 
   // Login con Google — compatible con Web y Android
-  static Future<Map<String, dynamic>> loginWithGoogle() async {
-    try {
-      // En web se necesita clientId explícito
-      // En Android se omite — lo toma del google-services.json automáticamente
-      final GoogleSignIn googleSignIn = kIsWeb
-          ? GoogleSignIn(
-              scopes: ['email', 'profile', 'openid'],
-              clientId: '408294359663-pihvunt5ou1h5nkul77du76vvlsq66d1.apps.googleusercontent.com',
-            )
-          : GoogleSignIn(
-              scopes: ['email', 'profile', 'openid'],
-            );
+  // Login con Google — compatible con Web y Android
+static Future<Map<String, dynamic>> loginWithGoogle() async {
+  try {
+    final GoogleSignIn googleSignIn = kIsWeb
+        ? GoogleSignIn(
+            scopes: ['email', 'profile', 'openid'],
+            clientId: '408294359663-pihvunt5ou1h5nkul77du76vvlsq66d1.apps.googleusercontent.com',
+          )
+        : GoogleSignIn(
+            scopes: ['email', 'profile', 'openid'],
+            // serverClientId = el Web client ID que usa el backend en application.properties
+            serverClientId: '408294359663-pihvunt5ou1h5nkul77du76vvlsq66d1.apps.googleusercontent.com',
+          );
 
-      await googleSignIn.signOut();
+    await googleSignIn.signOut();
 
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        return {'success': false, 'error': 'Login cancelado por el usuario'};
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // Web usa accessToken; Android usa idToken (más seguro y confiable en móvil)
-      final String? token = kIsWeb ? googleAuth.accessToken : googleAuth.idToken;
-      final String tokenKey = kIsWeb ? 'accessToken' : 'idToken';
-
-      if (token == null) {
-        return {'success': false, 'error': 'No se pudo obtener el token de Google'};
-      }
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/google'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({tokenKey: token}),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
-      );
-
-      final responseData = jsonDecode(response.body) as Map<String, dynamic>;
-
-      if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'token': responseData['token'],
-          'email': responseData['email'] ?? googleUser.email,
-          'name': responseData['name'] ?? googleUser.displayName ?? '',
-        };
-      } else {
-        return {
-          'success': false,
-          'error': responseData['error'] ?? 'Error al autenticar con Google',
-        };
-      }
-    } on TimeoutException {
-      return {'success': false, 'error': 'El servidor tardó demasiado en responder'};
-    } catch (e) {
-      return {'success': false, 'error': 'Error: ${e.toString()}'};
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      return {'success': false, 'error': 'Login cancelado por el usuario'};
     }
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+    final String? token = kIsWeb ? googleAuth.accessToken : googleAuth.idToken;
+    final String tokenKey = kIsWeb ? 'accessToken' : 'idToken';
+
+    if (token == null) {
+      return {'success': false, 'error': 'No se pudo obtener el token de Google'};
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({tokenKey: token}),
+    ).timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
+    );
+
+    final responseData = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'token': responseData['token'],
+        'email': responseData['email'] ?? googleUser.email,
+        'name': responseData['name'] ?? googleUser.displayName ?? '',
+      };
+    } else {
+      return {
+        'success': false,
+        'error': responseData['error'] ?? 'Error al autenticar con Google',
+      };
+    }
+  } on TimeoutException {
+    return {'success': false, 'error': 'El servidor tardó demasiado en responder'};
+  } catch (e) {
+    return {'success': false, 'error': 'Error: ${e.toString()}'};
   }
+}
 }
