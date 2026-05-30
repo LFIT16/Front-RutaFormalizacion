@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:login_signup/components/common/custom_form_button.dart';
 import 'package:login_signup/components/common/custom_input_field.dart';
@@ -8,7 +9,7 @@ import 'package:login_signup/services/token_service.dart';
 
 class VerifyCodePage extends StatefulWidget {
   final String email;
-  final String purpose; // "REGISTRO" o "LOGIN"
+  final String purpose;
 
   const VerifyCodePage({
     Key? key,
@@ -24,22 +25,53 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
   final TextEditingController _codeController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _isResending = false;
   int _remainingAttempts = 3;
+
+  // Countdown reenvío
+  int _secondsLeft = 60;
+  bool _canResend = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    setState(() {
+      _secondsLeft = 60;
+      _canResend = false;
+    });
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        if (_secondsLeft > 0) {
+          _secondsLeft--;
+        } else {
+          _canResend = true;
+          timer.cancel();
+        }
+      });
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _codeController.dispose();
     super.dispose();
   }
 
   void _handleVerifyCode() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final result = await AuthService.verifyCode(
       email: widget.email,
@@ -47,44 +79,54 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       purpose: widget.purpose,
     );
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
 
     if (mounted) {
       if (result['success']) {
-        // Mostrar mensaje de éxito
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Código verificado exitosamente'),
+            content:
+                Text(result['message'] ?? 'Código verificado exitosamente'),
             backgroundColor: Colors.green,
           ),
         );
 
-        // Navegar según el propósito
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+
         if (widget.purpose == "REGISTRO") {
-          // Redirigir a login
-          await Future.delayed(const Duration(seconds: 1));
-          if (mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-          }
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/login', (route) => false);
         } else if (widget.purpose == "LOGIN") {
-          // Guardar el token
-          String? token = result['token'];
+          final token = result['token'];
           if (token != null) {
             await TokenService.saveToken(token);
-            await TokenService.saveUserInfo(email: widget.email, name: widget.email);
+            // Obtener datos reales del usuario
+            final meResult = await AuthService.getMe();
+            if (meResult['success'] && meResult['user'] != null) {
+              final user = meResult['user'];
+              await TokenService.saveToken(token);
+              await TokenService.saveUserId(
+                  user['id'] ?? ''); // ← agregar esta línea
+              await TokenService.saveUserInfo(
+                email: user['email'] ?? widget.email,
+                name: user['name'] ?? widget.email,
+              );
+            } else {
+              await TokenService.saveUserInfo(
+                  email: widget.email, name: widget.email);
+            }
           }
-          // Redirigir a home
           await Future.delayed(const Duration(seconds: 1));
           if (mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+            Navigator.of(context)
+                .pushNamedAndRemoveUntil('/home', (route) => false);
           }
         }
       } else {
-        // Mostrar error
         setState(() {
-          _remainingAttempts = result['intentosRestantes'] ?? 3;
+          _remainingAttempts =
+              result['intentosRestantes'] ?? _remainingAttempts - 1;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,14 +136,43 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
           ),
         );
 
-        // Si se agotaron los intentos
         if (_remainingAttempts <= 0) {
           await Future.delayed(const Duration(seconds: 2));
-          if (mounted) {
-            Navigator.pop(context);
-          }
+          if (mounted) Navigator.pop(context);
         }
       }
+    }
+  }
+
+  void _handleResendCode() async {
+    if (!_canResend || _isResending) return;
+
+    setState(() => _isResending = true);
+
+    final result = await AuthService.resendCode(
+      email: widget.email,
+      purpose: widget.purpose,
+    );
+
+    setState(() {
+      _isResending = false;
+      _remainingAttempts = 3;
+      _codeController.clear();
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['success']
+                ? result['message'] ?? 'Código reenviado a tu correo'
+                : result['error'] ?? 'Error al reenviar el código',
+          ),
+          backgroundColor: result['success'] ? Colors.green : Colors.red,
+        ),
+      );
+
+      if (result['success']) _startCountdown();
     }
   }
 
@@ -135,9 +206,12 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                             const SizedBox(height: 8),
                             Text(
                               widget.email,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 20),
                             Text(
@@ -178,10 +252,8 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                             if (_remainingAttempts <= 0)
                               const Text(
                                 'Se agotaron los intentos. Por favor, intenta de nuevo más tarde.',
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                ),
+                                style:
+                                    TextStyle(color: Colors.red, fontSize: 12),
                               ),
                           ],
                         ),
@@ -192,6 +264,33 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                           : CustomFormButton(
                               innerText: 'Verificar',
                               onPressed: _handleVerifyCode,
+                            ),
+                      const SizedBox(height: 16),
+
+                      // Botón reenviar con countdown
+                      _isResending
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : GestureDetector(
+                              onTap: _canResend ? _handleResendCode : null,
+                              child: Text(
+                                _canResend
+                                    ? 'Reenviar código'
+                                    : 'Reenviar código en $_secondsLeft s',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: _canResend
+                                      ? const Color(0xff748288)
+                                      : const Color(0xff939393),
+                                  decoration: _canResend
+                                      ? TextDecoration.underline
+                                      : TextDecoration.none,
+                                ),
+                              ),
                             ),
                       const SizedBox(height: 30),
                     ],
