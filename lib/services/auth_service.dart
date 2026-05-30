@@ -9,7 +9,7 @@ class AuthService {
       return 'http://localhost:8383/auth';        // web
     }
     return 'http://10.0.2.2:8383/auth';           // emulador Android
-    // return 'http://192.168.1.205:8383/auth';   // dispositivo físico
+
   }
 
   // Registrar usuario
