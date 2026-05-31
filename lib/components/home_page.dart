@@ -1,131 +1,242 @@
 import 'package:flutter/material.dart';
 import 'package:login_signup/services/token_service.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomeTab extends StatefulWidget {
+  final void Function(int) onNavigate;
+
+  const HomeTab({Key? key, required this.onNavigate}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomePageState extends State<HomePage> {
-  String? userEmail;
-  bool isLoading = true;
+class _HomeTabState extends State<HomeTab> {
+  String _userName = '';
 
   @override
   void initState() {
     super.initState();
-    _loadUserInfo();
+    _loadUserName();
   }
 
-  Future<void> _loadUserInfo() async {
-    final email = await TokenService.getUserEmail();
-    setState(() {
-      userEmail = email;
-      isLoading = false;
-    });
-  }
-
-  void _handleLogout() async {
-    // Confirmación de logout
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await TokenService.clearUserData();
-              if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-              }
-            },
-            child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _loadUserName() async {
+    final name = await TokenService.getUserName();
+    setState(() => _userName = name ?? 'Emprendedor');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inicio'),
-        elevation: 0,
-        backgroundColor: Colors.blue.shade400,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _handleLogout,
-          ),
-        ],
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Center(
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Banner bienvenida ──────────────────────────────────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xff2E7D32), Color(0xff66BB6A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade400,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    '¡Bienvenido!',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
                   Text(
-                    userEmail ?? 'Usuario',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      '✓ Has iniciado sesión exitosamente',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    '¡Hola, $_userName! 👋',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _handleLogout,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade400,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                    ),
-                    child: const Text(
-                      'Cerrar sesión',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Continúa tu proceso de formalización',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 28),
+            const Text(
+              '¿Qué quieres hacer hoy?',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff333333)),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Grid 2×2 ──────────────────────────────────────────
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.1,
+              children: [
+                _buildCard(
+                  icon: Icons.newspaper,
+                  title: 'Noticias',
+                  subtitle: 'Últimas novedades',
+                  color: const Color(0xff1565C0),
+                  onTap: () => widget.onNavigate(1),
+                ),
+                _buildCard(
+                  icon: Icons.checklist_rtl,
+                  title: 'Checklist',
+                  subtitle: 'Tu ruta de formalización',
+                  color: const Color(0xff2E7D32),
+                  onTap: () => widget.onNavigate(2),
+                ),
+                _buildCard(
+                  icon: Icons.smart_toy,
+                  title: 'IA Formalización',
+                  subtitle: 'Resuelve tus dudas',
+                  color: const Color(0xff6A1B9A),
+                  onTap: () => widget.onNavigate(3),
+                ),
+                _buildCard(
+                  icon: Icons.gavel,
+                  title: 'Normativas',
+                  subtitle: 'Leyes vigentes',
+                  color: const Color(0xffE65100),
+                  onTap: () => widget.onNavigate(4),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // ── Mi Perfil — fila completa ──────────────────────────
+            GestureDetector(
+              onTap: () => widget.onNavigate(5),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xff00838F).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        color: Color(0xff00838F),
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mi Perfil',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Color(0xff333333),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Tu información personal',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xff9E9E9E),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Color(0xff9E9E9E),
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Color(0xff333333),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(fontSize: 11, color: Color(0xff9E9E9E)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
