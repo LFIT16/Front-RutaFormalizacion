@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 // auth_service.dart
-import 'package:flutter/foundation.dart'; // 👈 agregar
+import 'package:flutter/foundation.dart';
+
+import 'package:login_signup/services/token_service.dart';
 
 class AuthService {
   static String get baseUrl {
@@ -23,31 +25,35 @@ class AuthService {
     String? address,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/register'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'name': name,
-          'lastName': lastName,
-          'email': email,
-          'phone': phone,
-          'password': password,
-          'confirmPassword': confirmPassword,
-          'address': address ?? '',
-        }),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/register'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'name': name,
+              'lastName': lastName,
+              'email': email,
+              'phone': phone,
+              'password': password,
+              'confirmPassword': confirmPassword,
+              'address': address ?? '',
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw TimeoutException('Timeout en la conexión al servidor'),
+          );
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {
           'success': true,
-          'message': responseData['message'] ?? 'Usuario registrado exitosamente',
+          'message':
+              responseData['message'] ?? 'Usuario registrado exitosamente',
           'email': email,
         };
       } else if (response.statusCode == 409) {
@@ -85,26 +91,30 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/login'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw TimeoutException('Timeout en la conexión al servidor'),
+          );
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'message': responseData['message'] ?? 'Se envió un código 2FA a tu correo',
+          'message':
+              responseData['message'] ?? 'Se envió un código 2FA a tu correo',
           'email': email,
         };
       } else if (response.statusCode == 401) {
@@ -143,26 +153,30 @@ class AuthService {
     required String purpose, // "REGISTRO" o "LOGIN"
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/2fa/verify'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'codigo': codigo,
-        }),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/2fa/verify'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+              'codigo': codigo,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw TimeoutException('Timeout en la conexión al servidor'),
+          );
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'message': responseData['message'] ?? 'Código verificado exitosamente',
+          'message':
+              responseData['message'] ?? 'Código verificado exitosamente',
           'token': responseData['token'],
         };
       } else if (response.statusCode == 400) {
@@ -207,19 +221,22 @@ class AuthService {
     required String purpose,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/2fa/send'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'proposito': purpose,
-        }),
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => throw TimeoutException('Timeout en la conexión al servidor'),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/2fa/send'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'email': email,
+              'proposito': purpose,
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () =>
+                throw TimeoutException('Timeout en la conexión al servidor'),
+          );
 
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -249,6 +266,69 @@ class AuthService {
         'success': false,
         'error': 'Error de conexión: ${e.toString()}',
       };
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMe() async {
+    try {
+      final token = await TokenService.getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 30),
+          onTimeout: () => throw TimeoutException('Timeout'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'user': data['user']};
+      }
+      return {'success': false};
+    } catch (e) {
+      return {'success': false};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUser({
+    required String userId,
+    required String name,
+    required String lastName,
+    required String phone,
+    String? address,
+  }) async {
+    try {
+      final token = await TokenService.getToken();
+      final response = await http
+          .put(
+            Uri.parse('http://localhost:8383/api/users/$userId'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'name': name,
+              'lastName': lastName,
+              'phone': phone,
+              'address': address ?? '',
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw TimeoutException('Timeout'),
+          );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'user': jsonDecode(response.body)};
+      } else {
+        return {
+          'success': false,
+          'error': 'Error al actualizar: ${response.statusCode}'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Error de conexión: ${e.toString()}'};
     }
   }
 }

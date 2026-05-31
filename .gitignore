@@ -45,3 +45,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables
+.env
+
+# Servicio de seguridad (Ya tenemos el auth_service.dart, así que no es necesario incluir el security_service.dart)
+/lib/services/security_service.dart
