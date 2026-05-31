@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenService {
   static const String _tokenKey = 'jwt_token';
+  static const String _userIdKey = 'user_id';
   static const String _userEmailKey = 'user_email';
   static const String _userNameKey = 'user_name';
 
@@ -82,6 +83,7 @@ class TokenService {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
+      await prefs.remove(_userIdKey);
       await prefs.remove(_userEmailKey);
       await prefs.remove(_userNameKey);
       return true;
@@ -100,5 +102,17 @@ class TokenService {
       debugPrint('Error checking if logged in: $e');
       return false;
     }
+  }
+
+  // Actualizar usuario
+  static Future<bool> saveUserId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    return await prefs.setString(_userIdKey, id);
+  }
+
+  // Obtener id del usuario
+  static Future<String?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userIdKey);
   }
 }
