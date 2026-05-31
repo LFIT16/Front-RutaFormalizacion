@@ -8,10 +8,14 @@ import 'package:login_signup/services/token_service.dart';
 class AuthService {
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8383/auth';        // web
+      return 'http://localhost:8383/auth'; // web
     }
-    return 'http://10.0.2.2:8383/auth';           // emulador Android
+    return 'http://10.0.2.2:8383/auth'; // emulador Android
+  }
 
+  static String get chatbotUrl {
+    if (kIsWeb) return 'http://localhost:8000';
+    return 'http://10.0.2.2:8000';
   }
 
   // Registrar usuario
@@ -327,6 +331,32 @@ class AuthService {
           'error': 'Error al actualizar: ${response.statusCode}'
         };
       }
+    } catch (e) {
+      return {'success': false, 'error': 'Error de conexión: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendChatMessage(
+      List<Map<String, String>> messages) async {
+    try {
+      final token = await TokenService.getToken();
+      final response = await http
+          .post(
+            Uri.parse('${chatbotUrl}/api/chatbot/chat'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({'messages': messages}),
+          )
+          .timeout(const Duration(seconds: 30),
+              onTimeout: () => throw TimeoutException('Timeout'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'response': data['response']};
+      }
+      return {'success': false, 'error': 'Error al obtener respuesta'};
     } catch (e) {
       return {'success': false, 'error': 'Error de conexión: ${e.toString()}'};
     }
