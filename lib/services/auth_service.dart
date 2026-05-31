@@ -1,9 +1,16 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+// auth_service.dart
+import 'package:flutter/foundation.dart'; // 👈 agregar
 
 class AuthService {
-  // Backend API base URL - Actualiza según tu configuración
-  static const String baseUrl = 'http://localhost:8383/auth';
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8383/auth';        // web
+    }
+    return 'http://10.0.2.2:8383/auth';           // emulador Android
+
+  }
 
   // Registrar usuario
   static Future<Map<String, dynamic>> registerUser({
