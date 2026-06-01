@@ -14,7 +14,7 @@ class NewsService {
     String? baseUrl,
     http.Client? client,
     this.timeout = const Duration(seconds: 20),
-  })  : baseUrl = baseUrl ?? 'http://localhost:8383',
+  })  : baseUrl = baseUrl ?? 'http://localhost:8080',
         _client = client ?? http.Client();
 
   Future<List<News>> getLatestNews() async {

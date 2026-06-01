@@ -32,6 +32,7 @@ class _HomeTabState extends State<HomeTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Banner de bienvenida ───────────────────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -63,11 +64,17 @@ class _HomeTabState extends State<HomeTab> {
               ),
             ),
             const SizedBox(height: 28),
+
             const Text(
               '¿Qué quieres hacer hoy?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff333333)),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xff333333)),
             ),
             const SizedBox(height: 16),
+
+            // ── Grid de 6 cards (3 filas x 2 cols) ────────────────
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -76,10 +83,46 @@ class _HomeTabState extends State<HomeTab> {
               mainAxisSpacing: 14,
               childAspectRatio: 1.1,
               children: [
-                _buildCard(icon: Icons.newspaper, title: 'Noticias', subtitle: 'Últimas novedades', color: const Color(0xff1565C0), onTap: () => widget.onNavigate(1)),
-                _buildCard(icon: Icons.smart_toy, title: 'IA Formalización', subtitle: 'Resuelve tus dudas', color: const Color(0xff6A1B9A), onTap: () => widget.onNavigate(2)),
-                _buildCard(icon: Icons.gavel, title: 'Normativas', subtitle: 'Leyes vigentes', color: const Color(0xffE65100), onTap: () => widget.onNavigate(3)),
-                _buildCard(icon: Icons.person, title: 'Mi Perfil', subtitle: 'Tu información', color: const Color(0xff2E7D32), onTap: () => widget.onNavigate(4)),
+                // índice 1 → Noticias
+                _buildCard(
+                  icon: Icons.newspaper,
+                  title: 'Noticias',
+                  subtitle: 'Últimas novedades',
+                  color: const Color(0xff1565C0),
+                  onTap: () => widget.onNavigate(1),
+                ),
+                // índice 2 → Checklist  ← NUEVO
+                _buildCard(
+                  icon: Icons.checklist_rtl,
+                  title: 'Checklist',
+                  subtitle: 'Tu ruta de formalización',
+                  color: const Color(0xff2E7D32),
+                  onTap: () => widget.onNavigate(2),
+                ),
+                // índice 3 → IA
+                _buildCard(
+                  icon: Icons.smart_toy,
+                  title: 'IA Formalización',
+                  subtitle: 'Resuelve tus dudas',
+                  color: const Color(0xff6A1B9A),
+                  onTap: () => widget.onNavigate(3),
+                ),
+                // índice 4 → Normativas
+                _buildCard(
+                  icon: Icons.gavel,
+                  title: 'Normativas',
+                  subtitle: 'Leyes vigentes',
+                  color: const Color(0xffE65100),
+                  onTap: () => widget.onNavigate(4),
+                ),
+                // índice 5 → Perfil  (centrado en fila 3)
+                _buildCard(
+                  icon: Icons.person,
+                  title: 'Mi Perfil',
+                  subtitle: 'Tu información',
+                  color: const Color(0xff00838F),
+                  onTap: () => widget.onNavigate(5),
+                ),
               ],
             ),
           ],
@@ -102,7 +145,10 @@ class _HomeTabState extends State<HomeTab> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: Colors.black.withOpacity(0.07),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: Padding(
@@ -112,13 +158,23 @@ class _HomeTabState extends State<HomeTab> {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12)),
                 child: Icon(icon, color: color, size: 28),
               ),
               const SizedBox(height: 10),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xff333333)), textAlign: TextAlign.center),
+              Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xff333333)),
+                  textAlign: TextAlign.center),
               const SizedBox(height: 2),
-              Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xff9E9E9E)), textAlign: TextAlign.center),
+              Text(subtitle,
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0xff9E9E9E)),
+                  textAlign: TextAlign.center),
             ],
           ),
         ),

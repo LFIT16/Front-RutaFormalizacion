@@ -7,7 +7,8 @@ import 'package:login_signup/components/verify_code_page.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:login_signup/components/common/page_heading.dart';
 import 'package:login_signup/services/auth_service.dart';
-import 'package:url_launcher/url_launcher.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:login_signup/components/common/custom_form_button.dart';
 
@@ -25,11 +26,12 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  void _handleGoogleLogin() async {
-    final url = Uri.parse('http://localhost:8383/oauth2/authorization/google');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+  void _handleGoogleLogin() {
+    // Redirige la MISMA pestaña al backend de Google OAuth2.
+    // NO usar launchUrl(externalApplication): abre pestaña nueva sin contexto
+    // del Navigator, el callback con el token llega a una instancia huérfana
+    // y la navegación a /home nunca ocurre.
+    html.window.location.href = 'http://localhost:8383/oauth2/authorization/google';
   }
 
   @override

@@ -19,15 +19,42 @@ class _GoogleCallbackPageState extends State<GoogleCallbackPage> {
 
   Future<void> _handleCallback() async {
     final uri = Uri.base;
-    final token = uri.queryParameters['token'];
-    final require2fa = uri.queryParameters['require2fa'];
-    final email = uri.queryParameters['email'];
+
+    // Con Flutter Web hash router, la URL llega como:
+    //   http://localhost:7000/#/auth/google/callback?token=XXX
+    // uri.fragment = "/auth/google/callback?token=XXX"
+    // uri.queryParameters = {} (vacío, los params están dentro del fragment)
+    //
+
+    print('=== GOOGLE CALLBACK ===');
+    print('URI completa: $uri');
+    print('Fragment: ${uri.fragment}');
+    print('Query params: ${uri.queryParameters}');
+    // Extraemos los params del fragment:
+    String? token;
+    String? require2fa;
+    String? email;
+
+    final fragment = uri.fragment; // "/auth/google/callback?token=XXX"
+    final questionMark = fragment.indexOf('?');
+
+    if (questionMark != -1) {
+      // Hay query params dentro del fragment
+      final queryString = fragment.substring(questionMark + 1);
+      final params = Uri.splitQueryString(queryString);
+      token = params['token'];
+      require2fa = params['require2fa'];
+      email = params['email'];
+    } else {
+      // Fallback: intentar queryParameters normales (sin hash router)
+      token = uri.queryParameters['token'];
+      require2fa = uri.queryParameters['require2fa'];
+      email = uri.queryParameters['email'];
+    }
 
     if (token != null) {
-      // Guardar token
       await TokenService.saveToken(token);
 
-      // Obtener datos del usuario
       final meResult = await AuthService.getMe();
       if (meResult['success'] && meResult['user'] != null) {
         final user = meResult['user'];
@@ -42,18 +69,16 @@ class _GoogleCallbackPageState extends State<GoogleCallbackPage> {
         Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     } else if (require2fa == 'true' && email != null) {
-      // Redirigir a verificación 2FA
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => VerifyCodePage(email: email, purpose: 'LOGIN'),
+            builder: (_) => VerifyCodePage(email: email!, purpose: 'LOGIN'),
           ),
         );
       }
     } else {
-      // Error
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     }
   }

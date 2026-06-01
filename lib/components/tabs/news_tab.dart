@@ -14,7 +14,7 @@ class NewsTab extends StatefulWidget {
 
 class _NewsTabState extends State<NewsTab> {
   late Future<List<News>> _newsFuture;
-  final NewsService _newsService = NewsService(baseUrl: 'http://localhost:8383');
+  final NewsService _newsService = NewsService(baseUrl: 'http://localhost:8080');
 
   @override
   void initState() {
