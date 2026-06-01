@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login_signup/components/google_callback_page.dart';
 import 'package:login_signup/components/login_page.dart';
 import 'package:login_signup/components/main_page.dart';
 import 'package:login_signup/components/splash_screen.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const MainPage(),
+        '/auth/google/callback': (context) => const GoogleCallbackPage(),
       },
     );
   }
