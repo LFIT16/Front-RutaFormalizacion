@@ -59,8 +59,16 @@ class _ChecklistTabState extends State<ChecklistTab> {
     if (!resumenResult['success']) {
       if (resumenResult['noChecklist'] == true ||
           (resumenResult['error'] ?? '').toString().contains('404')) {
+        // El checklist genuinamente no existe todavía → mostrar formulario
         setState(() {
           _noChecklist = true;
+          _isLoading = false;
+        });
+        return;
+      } else {
+        // Otro error (red, 401, etc.) → mostrar mensaje de error, no el formulario
+        setState(() {
+          _errorMsg = resumenResult['error'] ?? 'Error al cargar el checklist';
           _isLoading = false;
         });
         return;
@@ -108,7 +116,11 @@ class _ChecklistTabState extends State<ChecklistTab> {
     setState(() => _initLoading = false);
 
     if (result['success']) {
-      _showSnack('¡Checklist creado exitosamente!');
+      if (result['yaExiste'] == true) {
+        _showSnack('Ya tienes un checklist creado, cargando...');
+      } else {
+        _showSnack('¡Checklist creado exitosamente!');
+      }
       await _cargarDatos();
     } else {
       _showSnack(result['error'] ?? 'Error al inicializar', isError: true);

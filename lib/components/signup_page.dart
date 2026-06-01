@@ -8,6 +8,8 @@ import 'package:login_signup/components/common/page_heading.dart';
 import 'package:login_signup/components/login_page.dart';
 import 'package:login_signup/components/verify_code_page.dart';
 import 'package:login_signup/services/auth_service.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:login_signup/components/common/custom_form_button.dart';
 import 'package:login_signup/components/common/custom_input_field.dart';
@@ -20,11 +22,10 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-
   File? _profileImage;
 
   final _signupFormKey = GlobalKey<FormState>();
-  
+
   // Controllers para obtener los valores
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -32,14 +33,15 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isLoading = false;
 
   Future _pickProfileImage() async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if(image == null) return;
+      if (image == null) return;
 
       final imageTemporary = File(image.path);
       setState(() => _profileImage = imageTemporary);
@@ -112,17 +114,23 @@ class _SignupPageState extends State<SignupPage> {
                 Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20),),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
                   child: Column(
                     children: [
-                      const PageHeading(title: 'Registrarse',),
+                      const PageHeading(
+                        title: 'Registrarse',
+                      ),
                       SizedBox(
                         width: 130,
                         height: 130,
                         child: CircleAvatar(
                           backgroundColor: Colors.grey.shade200,
-                          backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                          backgroundImage: _profileImage != null
+                              ? FileImage(_profileImage!)
+                              : null,
                           child: Stack(
                             children: [
                               Positioned(
@@ -135,7 +143,8 @@ class _SignupPageState extends State<SignupPage> {
                                     width: 50,
                                     decoration: BoxDecoration(
                                       color: Colors.blue.shade400,
-                                      border: Border.all(color: Colors.white, width: 3),
+                                      border: Border.all(
+                                          color: Colors.white, width: 3),
                                       borderRadius: BorderRadius.circular(25),
                                     ),
                                     child: const Icon(
@@ -150,76 +159,84 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16,),
+                      const SizedBox(
+                        height: 16,
+                      ),
                       CustomInputField(
                           controller: _nameController,
                           labelText: 'Nombre',
                           hintText: 'Tu nombre',
                           isDense: true,
                           validator: (textValue) {
-                            if(textValue == null || textValue.isEmpty) {
+                            if (textValue == null || textValue.isEmpty) {
                               return 'El nombre es obligatorio';
                             }
-                            if(textValue.length < 2) {
+                            if (textValue.length < 2) {
                               return 'El nombre debe tener al menos 2 caracteres';
                             }
                             return null;
-                          }
+                          }),
+                      const SizedBox(
+                        height: 16,
                       ),
-                      const SizedBox(height: 16,),
                       CustomInputField(
                           controller: _lastNameController,
                           labelText: 'Apellido',
                           hintText: 'Tu apellido',
                           isDense: true,
                           validator: (textValue) {
-                            if(textValue == null || textValue.isEmpty) {
+                            if (textValue == null || textValue.isEmpty) {
                               return 'El apellido es obligatorio';
                             }
-                            if(textValue.length < 2) {
+                            if (textValue.length < 2) {
                               return 'El apellido debe tener al menos 2 caracteres';
                             }
                             return null;
-                          }
+                          }),
+                      const SizedBox(
+                        height: 16,
                       ),
-                      const SizedBox(height: 16,),
                       CustomInputField(
                           controller: _emailController,
                           labelText: 'Email',
                           hintText: 'Tu correo electrónico',
                           isDense: true,
                           validator: (textValue) {
-                            if(textValue == null || textValue.isEmpty) {
+                            if (textValue == null || textValue.isEmpty) {
                               return 'El email es obligatorio';
                             }
-                            if(!EmailValidator.validate(textValue)) {
+                            if (!EmailValidator.validate(textValue)) {
                               return 'Por favor ingresa un email válido';
                             }
                             return null;
-                          }
+                          }),
+                      const SizedBox(
+                        height: 16,
                       ),
-                      const SizedBox(height: 16,),
                       CustomInputField(
-                          controller: _phoneController,
-                          labelText: 'Teléfono',
-                          hintText: 'Tu número de teléfono',
-                          isDense: true,
-                          validator: _validatePhone,
+                        controller: _phoneController,
+                        labelText: 'Teléfono',
+                        hintText: 'Tu número de teléfono',
+                        isDense: true,
+                        validator: _validatePhone,
                       ),
-                      const SizedBox(height: 16,),
+                      const SizedBox(
+                        height: 16,
+                      ),
                       CustomInputField(
                           controller: _addressController,
                           labelText: 'Dirección (Opcional)',
                           hintText: 'Tu dirección',
                           isDense: true,
                           validator: (textValue) {
-                            if(textValue != null && textValue.length > 200) {
+                            if (textValue != null && textValue.length > 200) {
                               return 'La dirección no puede superar 200 caracteres';
                             }
                             return null;
-                          }
+                          }),
+                      const SizedBox(
+                        height: 16,
                       ),
-                      const SizedBox(height: 16,),
                       CustomInputField(
                         controller: _passwordController,
                         labelText: 'Contraseña',
@@ -229,7 +246,9 @@ class _SignupPageState extends State<SignupPage> {
                         validator: _validatePassword,
                         suffixIcon: true,
                       ),
-                      const SizedBox(height: 16,),
+                      const SizedBox(
+                        height: 16,
+                      ),
                       CustomInputField(
                         controller: _confirmPasswordController,
                         labelText: 'Confirmar Contraseña',
@@ -237,40 +256,110 @@ class _SignupPageState extends State<SignupPage> {
                         isDense: true,
                         obscureText: true,
                         validator: (textValue) {
-                          if(textValue == null || textValue.isEmpty) {
+                          if (textValue == null || textValue.isEmpty) {
                             return 'Debes confirmar tu contraseña';
                           }
-                          if(textValue != _passwordController.text) {
+                          if (textValue != _passwordController.text) {
                             return 'Las contraseñas no coinciden';
                           }
                           return null;
                         },
                         suffixIcon: true,
                       ),
-                      const SizedBox(height: 22,),
+                      const SizedBox(
+                        height: 22,
+                      ),
                       _isLoading
                           ? const CircularProgressIndicator()
                           : CustomFormButton(
                               innerText: 'Registrarse',
                               onPressed: _handleSignupUser,
                             ),
-                      const SizedBox(height: 18,),
+                      const SizedBox(
+                        height: 18,
+                      ),
                       SizedBox(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text('¿Ya tienes cuenta? ', style: TextStyle(fontSize: 13, color: Color(0xff939393), fontWeight: FontWeight.bold),),
+                            const Text(
+                              '¿Ya tienes cuenta? ',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xff939393),
+                                  fontWeight: FontWeight.bold),
+                            ),
                             GestureDetector(
                               onTap: () => {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage()))
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LoginPage()))
                               },
-                              child: const Text('Inicia sesión', style: TextStyle(fontSize: 15, color: Color(0xff748288), fontWeight: FontWeight.bold),),
+                              child: const Text(
+                                'Inicia sesión',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: Color(0xff748288),
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 30,),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.grey.shade300)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('o',
+                                style: TextStyle(color: Color(0xff939393))),
+                          ),
+                          Expanded(child: Divider(color: Colors.grey.shade300)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: OutlinedButton.icon(
+                          onPressed: _handleGoogleSignup,
+                          icon: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: const Center(
+                              child: Text('G',
+                                  style: TextStyle(
+                                    color: Color(0xff4285F4),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  )),
+                            ),
+                          ),
+                          label: const Text(
+                            'Registrarse con Google',
+                            style: TextStyle(
+                                color: Color(0xff333333),
+                                fontWeight: FontWeight.w600),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Color(0xffDDDDDD)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
                     ],
                   ),
                 ),
@@ -312,7 +401,8 @@ class _SignupPageState extends State<SignupPage> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Usuario registrado exitosamente'),
+            content:
+                Text(result['message'] ?? 'Usuario registrado exitosamente'),
             backgroundColor: Colors.green,
           ),
         );
@@ -339,5 +429,10 @@ class _SignupPageState extends State<SignupPage> {
         );
       }
     }
+  }
+
+  void _handleGoogleSignup() {
+    // Redirige la MISMA pestaña al backend de Google OAuth2.
+    html.window.location.href = 'http://localhost:8383/oauth2/authorization/google';
   }
 }

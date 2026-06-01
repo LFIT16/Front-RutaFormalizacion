@@ -6,9 +6,9 @@ import 'package:login_signup/services/token_service.dart';
 class ChecklistService {
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:8383/api/checklist';
+      return 'http://localhost:8080/api/checklist';
     }
-    return 'http://10.0.2.2:8383/api/checklist';
+    return 'http://10.0.2.2:8080/api/checklist';
   }
 
   // ── Headers con JWT ──────────────────────────────────────────────
@@ -82,6 +82,10 @@ class ChecklistService {
       final data = jsonDecode(response.body);
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'mensaje': data['mensaje']};
+      } else if (response.statusCode == 409) {
+        // El checklist ya existe para este usuario — tratarlo como éxito
+        // para que la UI cargue el checklist existente en lugar de mostrar error.
+        return {'success': true, 'yaExiste': true, 'mensaje': 'El checklist ya estaba creado'};
       } else {
         return {'success': false, 'error': data['error'] ?? 'Error al inicializar'};
       }
