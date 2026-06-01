@@ -4,6 +4,7 @@ import 'package:login_signup/components/tabs/news_tab.dart';
 import 'package:login_signup/components/tabs/chatbot_tab.dart';
 import 'package:login_signup/components/tabs/laws_tab.dart';
 import 'package:login_signup/components/tabs/profile_tab.dart';
+import 'package:login_signup/components/tabs/checklist_tab.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -21,12 +22,15 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ─── Orden de tabs ──────────────────────────────────────────
+    // 0 Inicio  1 Noticias  2 Checklist  3 IA  4 Normativas  5 Perfil
     final List<Widget> tabs = [
-      HomeTab(onNavigate: _navigateTo),
-      const NewsTab(),
-      const ChatbotTab(),
-      const LawsTab(),
-      const ProfileTab(),
+      HomeTab(onNavigate: _navigateTo),   // 0
+      const NewsTab(),                     // 1
+      const ChecklistTab(),               // 2  ← NUEVO
+      const ChatbotTab(),                  // 3
+      const LawsTab(),                     // 4
+      const ProfileTab(),                  // 5
     ];
 
     return Scaffold(
@@ -40,16 +44,42 @@ class _MainPageState extends State<MainPage> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xff2E7D32),
         unselectedItemColor: const Color(0xff9E9E9E),
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        selectedLabelStyle:
+        const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+        unselectedLabelStyle: const TextStyle(fontSize: 10),
         backgroundColor: Colors.white,
         elevation: 12,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.newspaper_outlined), activeIcon: Icon(Icons.newspaper), label: 'Noticias'),
-          BottomNavigationBarItem(icon: Icon(Icons.smart_toy_outlined), activeIcon: Icon(Icons.smart_toy), label: 'IA Formalización'),
-          BottomNavigationBarItem(icon: Icon(Icons.gavel_outlined), activeIcon: Icon(Icons.gavel), label: 'Normativas'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Perfil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.newspaper_outlined),
+            activeIcon: Icon(Icons.newspaper),
+            label: 'Noticias',
+          ),
+          BottomNavigationBarItem(                      // ← índice 2
+            icon: Icon(Icons.checklist_rtl_outlined),
+            activeIcon: Icon(Icons.checklist_rtl),
+            label: 'Checklist',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.smart_toy_outlined),
+            activeIcon: Icon(Icons.smart_toy),
+            label: 'IA',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.gavel_outlined),
+            activeIcon: Icon(Icons.gavel),
+            label: 'Normativas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
         ],
       ),
     );
